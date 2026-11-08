@@ -12,8 +12,11 @@
  */
 async function loadData() {
   try {
-    // data.json holds 150 Prince George's County food inspections
-    const response = await fetch('./data.json');
+    // data.json holds 150 Prince George's County food inspections. error handling done
+        const response = await fetch('./data.json');
+    if (!response.ok) {
+      throw new Error(`Could not find data.json (error ${response.status})`);
+    }
     const data = await response.json();
     console.log('data loaded', data);
 

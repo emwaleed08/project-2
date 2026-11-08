@@ -226,3 +226,7 @@ body {
     background: white;
     border-radius: 8px;
 }
+
+.table-wrapper {
+    overflow-x: auto;
+}

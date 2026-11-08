@@ -55,7 +55,7 @@ function showTable(data) {
   return `
             <h2 class="view-title">📊 Table View</h2>
                 <p class="view-description">For health inspectors: places with the most failed checks are at the top</p>
-                <div class="table-wrapper">
+                <div class="table-wrapper" role="region" aria-label="Inspections table" tabindex="0">
                     <table class="restaurant-table">
                         <caption>${data.length} food safety inspections, sorted by number of failed checks</caption>
                         <thead>

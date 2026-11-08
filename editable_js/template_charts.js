@@ -22,26 +22,60 @@ function orNotListed(value) {
   return value === '------' || value === 'N/A' || value === undefined ? 'Not listed' : value;
 }
 
+function getCheckCounts(data) {
+  const checkCounts = {};
+  CHECKS.forEach((check) => {
+    const label = check.replaceAll('_', ' ');
+    checkCounts[label] = data.filter((inspection) => inspection[check] === 'Out of Compliance').length;
+  });
+  return checkCounts;
+}
+
+function getResultCounts(data) {
+  const resultCounts = {};
+  data.forEach((inspection) => {
+    const result = orNotListed(inspection.inspection_results);
+    resultCounts[result] = (resultCounts[result] || 0) + 1;
+  });
+  return resultCounts;
+}
+
 function showCharts(data) {
   // TODO: Replace each TODO sentence below with text that says what that chart shows.
   // Charts are drawn as pictures, so screen readers can't read them.
+
+  const checkCounts = getCheckCounts(data);
+  const sortedChecks = Object.entries(checkCounts).sort((a, b) => b[1] - a[1]);
+  const [topCheck, topCheckCount] = sortedChecks[0];
+
+  const resultCounts = getResultCounts(data);
+  const sortedResults = Object.entries(resultCounts)
+    .filter(([result]) => result !== 'Not listed')
+    .sort((a, b) => b[1] - a[1]);
+  const [topResult, topResultCount] = sortedResults[0];
+  const notListed = resultCounts['Not listed'] || 0;
+
   /*html*/
   return `
                 <h2 class="view-title">📈 Charts View</h2>
                 <p class="view-description">Patterns in the data at a glance</p>
                 <div class="charts-grid">
                     <figure class="chart-figure">
-                        <canvas id="chart-one"></canvas>
-                        <figcaption class="chart-summary">
-                            Rodents and insects was the most often failed check: 20 of 150 inspections,
-                            followed by hot holding temperature and food contact surfaces (14 each).
+                        <canvas id="chart-one" role="img"
+                            aria-label="Bar chart: which safety checks fail most often"
+                            aria-describedby="chart-one-summary"></canvas>
+                        <figcaption class="chart-summary" id="chart-one-summary">
+                            The most often failed check was ${topCheck}:
+                            ${topCheckCount} of ${data.length} inspections.
                         </figcaption>
                     </figure>
                     <figure class="chart-figure">
-                        <canvas id="chart-two"></canvas>
-                        <figcaption class="chart-summary">
-                            The most common result was "Non-Compliant - Violations Observed" (42 of 150 inspections),
-                            and 40 inspections had no result listed.
+                        <canvas id="chart-two" role="img"
+                            aria-label="Pie chart: results of the inspections"
+                            aria-describedby="chart-two-summary"></canvas>
+                        <figcaption class="chart-summary" id="chart-two-summary">
+                            The most common result was "${topResult}" (${topResultCount} of ${data.length} inspections),
+                            and ${notListed} inspections had no result listed.
                         </figcaption>
                     </figure>
                 </div>
@@ -61,11 +95,7 @@ function drawCharts(data) {
   // It wants a list of labels and a matching list of numbers.
   // Example: count inspections by type of business.
 
-  const checkCounts = {};
-  CHECKS.forEach((check) => {
-    const label = check.replaceAll('_', ' ');
-    checkCounts[label] = data.filter((inspection) => inspection[check] === 'Out of Compliance').length;
-  });
+  const checkCounts = getCheckCounts(data);
   const checkLabels = Object.keys(checkCounts);
   const checkNumbers = Object.values(checkCounts);
 
@@ -94,11 +124,7 @@ function drawCharts(data) {
   // Ideas: inspection results as a pie, inspections per month as a line,
   // or how many "Out of Compliance" checks each type of business averages.
 
-  const resultCounts = {};
-  data.forEach((inspection) => {
-    const result = orNotListed(inspection.inspection_results);
-    resultCounts[result] = (resultCounts[result] || 0) + 1;
-  });
+  const resultCounts = getResultCounts(data);
   const resultLabels = Object.keys(resultCounts);
   const resultNumbers = Object.values(resultCounts);
 
@@ -115,6 +141,5 @@ function drawCharts(data) {
     }
   });
 }
-
 
 export { showCharts, drawCharts };
